@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { View, StyleSheet } from "react-native";
 import { MotiView } from "moti";
 import { LinearGradient } from "expo-linear-gradient";
@@ -8,11 +8,10 @@ interface SiriSphereProps {
   speaking?: boolean;
 }
 
-export default function SiriSphere({ speaking = false }: SiriSphereProps) {
+const SiriSphere = ({ speaking = false }: SiriSphereProps) => {
   const initialSize = 80;
   const maxSize = 130;
-
-  const [animate, setAnimate] = useState(false);
+  const isFirstRender = useRef(true);
 
   const [colors, setColors] = useState<readonly [string, string]>([
     "#4b6cb7",
@@ -31,24 +30,22 @@ export default function SiriSphere({ speaking = false }: SiriSphereProps) {
   };
 
   useEffect(() => {
-    if (speaking) {
-      setAnimate(true);
-    } else {
-      setAnimate(false);
+    if (!speaking && !isFirstRender.current) {
       setColors(randomGradient());
     }
+    isFirstRender.current = false;
   }, [speaking]);
 
   return (
     <View style={styles.container}>
+      {/* Camada de escala - não reseta */}
       <MotiView
         animate={{
-          scale: animate ? maxSize / initialSize : 1,
-          rotate: animate ? "360deg" : "0deg",
+          scale: speaking ? maxSize / initialSize : 1,
         }}
         transition={{
           type: "timing",
-          duration: 1500,
+          duration: 800,
           easing: Easing.inOut(Easing.ease),
         }}
         style={[
@@ -60,15 +57,45 @@ export default function SiriSphere({ speaking = false }: SiriSphereProps) {
           },
         ]}
       >
-        <LinearGradient
-          colors={colors}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={styles.sphere}
-        />
+        {/* Camada de rotação - só aparece quando speaking=true */}
+        {speaking ? (
+          <MotiView
+            from={{ rotate: "0deg" }}
+            animate={{ rotate: "360deg" }}
+            transition={{
+              type: "timing",
+              duration: 1500,
+              loop: true,
+              easing: Easing.linear,
+              repeatReverse: false,
+            }}
+            style={[
+              {
+                width: "100%",
+                height: "100%",
+                justifyContent: "center",
+                alignItems: "center",
+              },
+            ]}
+          >
+            <LinearGradient
+              colors={colors}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.sphere}
+            />
+          </MotiView>
+        ) : (
+          <LinearGradient
+            colors={colors}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.sphere}
+          />
+        )}
 
-        {/* Ondas saindo da esfera */}
-        {animate &&
+        {/* Ondas pulsantes */}
+        {speaking &&
           Array.from({ length: 3 }).map((_, i) => (
             <MotiView
               key={i}
@@ -79,11 +106,13 @@ export default function SiriSphere({ speaking = false }: SiriSphereProps) {
                 duration: 1200 + i * 200,
                 loop: true,
                 easing: Easing.out(Easing.ease),
+                delay: i * 150,
+                repeatReverse: false,
               }}
               style={[
                 styles.wave,
                 {
-                  backgroundColor: colors[0] + "80", // mesma cor da esfera, mas mais transparente
+                  backgroundColor: colors[0] + "80",
                   width: initialSize,
                   height: initialSize,
                   borderRadius: initialSize / 2,
@@ -94,7 +123,7 @@ export default function SiriSphere({ speaking = false }: SiriSphereProps) {
       </MotiView>
     </View>
   );
-}
+};
 
 const styles = StyleSheet.create({
   container: {
@@ -118,3 +147,5 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
 });
+
+export default React.memo(SiriSphere);
