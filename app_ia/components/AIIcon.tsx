@@ -47,7 +47,7 @@ const SiriSphere = ({ speaking = false }: SiriSphereProps) => {
           type: "timing",
           duration: 800,
           easing: Easing.inOut(Easing.ease),
-        }}
+        }as any}
         style={[
           styles.sphereWrapper,
           {
@@ -68,7 +68,7 @@ const SiriSphere = ({ speaking = false }: SiriSphereProps) => {
               loop: true,
               easing: Easing.linear,
               repeatReverse: false,
-            }}
+            }as any}
             style={[
               {
                 width: "100%",
@@ -108,7 +108,7 @@ const SiriSphere = ({ speaking = false }: SiriSphereProps) => {
                 easing: Easing.out(Easing.ease),
                 delay: i * 150,
                 repeatReverse: false,
-              }}
+              }as any}
               style={[
                 styles.wave,
                 {
